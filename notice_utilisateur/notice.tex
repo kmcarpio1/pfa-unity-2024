@@ -1,0 +1,131 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\title{Notice d'utilisation du module de Réalité Augmentée \textit{PFA}}
+\author{
+    BANIDE Christian \\
+    \texttt{cbanide@bordeaux-inp.fr}
+    \and
+    DESBOIS-RENAUDIN Méo \\
+    \texttt{mdesboisren@bordeaux-inp.fr}
+    \and
+    DESCOMPS Théo \\
+    \texttt{tdescomps@bordeaux-inp.fr}
+    \and
+    DUCAMP Simon \\
+    \texttt{siducamp@bordeaux-inp.fr}
+    \and
+    MORENO CARPIO Kenzo \\
+    \texttt{kmcarpio@bordeaux-inp.fr}
+    \and
+    PIETTE Camille \\
+    \texttt{camille.piette@bordeaux-inp.fr}
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+Cette notice est à destination des développeurs de SpaceReset, ou tout autre utilisateur du module de réalité augmentée \textit{PFA}.
+Elle détaille comment installer, prendre en main, et configurer le module. Elle présente aussi tous les contenus du module.
+
+\section{Configurations}
+
+Certains contenus du module de réalité augmentée sont modulables, et leur édition est laissée à la responsabilité de SpaceReset.
+Ces contenus comprennent :
+\begin{enumerate}
+    \item Le marqueur faisant apparaître l'hologramme
+    \item L'hologramme à afficher
+    \item Le format du panel de l'hologramme
+    \item Les informations du panel de l'hologramme
+\end{enumerate}
+Les sous-sections suivantes détaillerons la condiguration spécifique de chacun de ces contenus.
+
+\subsection{Marqueur}
+
+Le marqueur, soit l'objet détecté par le module d'où apparaîtra l'hologramme, s'installe dans la scène à la compilation.
+Il se présente dans le cadre du PFA (et de AR Foundation en général) sous la forme d'une image.
+Le PFA ne prévoit pas de changement de marqueur à l'exécution : \textbf{une fois l'application build avec un marqueur, il 
+ne pourra pas être changé jusqu'au prochain build}. AR Foundation permet l'acceptation de plusieurs marqueurs en simultanée
+par un système de \textit{Reference Libraries} (bibliothèques de références).
+
+\vspace{5mm}
+
+Afin d'installer un marqueur, importez votre image dans Unity, puis ajoutez-là dans une \textbf{Reference Image Library}.
+Vous pouvez créer une Reference Image Library via : Clic-droit dans votre dépôt de projet, $\rightarrow$ Create 
+$\rightarrow$ XR $\rightarrow$ Reference Image Library. 
+
+\vspace{5mm}
+
+Enfin, afin de charger la bibliothèque dans une scène RA, ajoutez votre Reference Image Library dans l'origine RA. 
+Cliquez sur le GameObject "AR Session Origin" dans votre hiérarchie de scène, et dans son script "AR Tracked Image Manager"
+glissez-déposez la bibliothèque dans le champ "Serialized Library".
+
+\subsection{Hologramme}
+
+L'hologramme, soit l'objet affiché en 3D, se décide via un Prefab, et peut donc se
+changer à l'exécution. Un objet affiché en 3D dans l'environnement RA fonctionne en
+terme d'affichage et de collisions comme un GameObject dans une scène 3D Unity classique.
+
+\vspace{5mm}
+
+Le Prefab définissant l'hologramme à afficher est stocké dans l'origine RA de la scène.
+Cliquez sur le GameObject "AR Session Origin" dans votre hiérarchie de scène,
+le champ "Tracked Image Prefab" dans son script "AR Tracked Image Manager" est l'hologramme.
+
+\vspace{5mm}
+
+Dans le cadre du PFA, le Prefab déjà chargé se nomme "SatellitePanel", et stocke à la fois l'hologramme
+à afficher mais aussi son panel ; il dispose d'un script qui sert à l'instanciation de ces deux objets
+\textbf{ce Prefab est fixé, ne tentez pas de le changer au risque de casser le fonctionnement attendu du module}.
+Préférez la démarche suivante : que vous utilisiez une scène initiale différente de la scène RA ou non,
+modifiez l'hologramme dans le champ "Hologram" du "DataInjector". Ce dernier s'occupera au chargement
+de la scène RA d'injecter le bon hologramme dans le Prefab "SatellitePanel".
+
+Cette modification du champ peut se faire à l'exécution (dans le cadre par exemple) de la récupération de
+l'hologramme via un appel API.
+
+\subsection{Format du panel}
+
+Le panel est l'objet servant à décrire les informations de l'hologramme (Prefab "HologramPanel"). 
+Il apparaît au touché de l'hologramme et disparaît à un touché dans le vide. 
+Son format, soit l'ensemble de ses entrées, est fixé à l'éditeur.
+
+\vspace{5mm}
+
+Pour fixer le format du panel, ouvrez son Prefab. Allez dans le dossier des Prefabs "HoloEntries".
+De là, vous pouvez glisser-déposer les entrées dans le "Body" du "HologramPanel" et vous verrez son
+format se modifier en direct.
+
+\textbf{Information cruciale :} la plupart des entrées suit un même format (taille verticale de 1),
+mais certaines entrées font exceptions à la règle. Ces entrées exceptions ne doivent ni commencer ni finir
+le panel (elles doivent être strictement à l'intérieur du body), sous risque de créer un format avec un bug
+d'affichage.
+
+\subsection{Informations du panel}
+
+Le panel est l'objet servant à décrire les informations de l'hologramme (Prefab "HologramPanel"). 
+Il apparaît au touché de l'hologramme et disparaît à un touché dans le vide. 
+Son contenu, soit les informations inscrites dans chaque entrée, est changeable à l'exécution.
+
+\vspace{5mm}
+
+La démarche pour l'injection du contenu dans le panel est la même que pour l'injection de l'hologramme :
+passer par un transmetteur de données inter-scènes (qui fonctionne aussi si présent sur une seule scène).
+
+Modifiez le dictionnaire "panelContent" du Prefab "DataInjector" (possible via un script), 
+ce dernier s'occupera au chargement de la scène RA d'injecter le bon contenu 
+dans le Prefab "HologramPanel".
+
+
+\end{document}
